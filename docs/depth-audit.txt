@@ -1,0 +1,8 @@
+
+E:\大三\Web\web10\src\todo-app.ts
+  114:3  warning  Unexpected console statement  no-console
+  516:5  warning  Unexpected console statement  no-console
+  519:5  warning  Unexpected console statement  no-console
+
+✖ 3 problems (0 errors, 3 warnings)
+

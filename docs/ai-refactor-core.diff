@@ -1,0 +1,270 @@
+diff --git a/docs/before/todo-core.ts b/src/todo-core.ts
+index 17d3faa..bc42a0c 100644
+--- a/docs/before/todo-core.ts
++++ b/src/todo-core.ts
+@@ -279,126 +279,213 @@ export function getTodoStats(todos: readonly Todo[]): TodoStats {
+ 
+ function isRecord(value: unknown): value is Record<string, unknown> {
+   return typeof value === 'object' && value !== null;
+ }
+ 
++/** 一条「形状已合法、id 待定」的候选数据。id 为 null 表示缺失 / 非法 / 重复。 */
++interface TodoCandidate {
++  readonly text: string;
++  readonly completed: boolean;
++  id: number | null;
++}
++
+ /**
+- * 从存储恢复。localStorage 与用户输入一样不可信，因此：
+- *   · 读取 / JSON.parse 抛异常 → 空列表；
+- *   · 顶层不是数组 → 空列表；
+- *   · 单条形状不对（null、text 非字符串、completed 非布尔、超长）→ 丢弃；
+- *   · id 缺失 / 重复 / 非法 → 重新分配，不丢弃整条业务数据；
+- *   · 每一步都不使用 any，JSON.parse 的结果先收窄为 unknown。
++ * 读取并解析存储。返回 null 表示「没有可恢复的数据」：
++ * 存储不可用、读取抛异常、内容为空、JSON 非法、顶层不是数组，五种情况同此处理。
+  */
+-export function loadTodos(
++function readStoredItems(
+   storage: StorageLike | null,
+   key: string,
+-): LoadTodosResult {
++): readonly unknown[] | null {
+   if (storage === null) {
+-    return { todos: [], discarded: 0 };
++    return null;
+   }
+ 
+   let raw: string | null;
+   try {
+     raw = storage.getItem(key);
+   } catch {
+-    return { todos: [], discarded: 0 };
++    return null;
+   }
+ 
+   if (raw === null || raw.trim() === '') {
+-    return { todos: [], discarded: 0 };
++    return null;
+   }
+ 
+   let parsed: unknown;
+   try {
+     parsed = JSON.parse(raw) as unknown;
+   } catch {
+-    return { todos: [], discarded: 0 };
++    return null;
+   }
+ 
+   if (!Array.isArray(parsed)) {
+-    return { todos: [], discarded: 0 };
++    return null;
+   }
+ 
+   const items: readonly unknown[] = parsed;
+-  interface Candidate {
+-    text: string;
+-    completed: boolean;
+-    id: number | null;
++  return items;
++}
++
++/**
++ * 校验单条脏数据，返回 null 表示「形状不合法，应丢弃」。
++ * 判定顺序与重构前完全一致：非对象 → text 非字符串 → 规范化后为空 / 超长 →
++ * completed 非布尔。id 非法不丢弃整条，只把 id 置 null 等待重编号。
++ */
++function toCandidate(item: unknown): TodoCandidate | null {
++  if (!isRecord(item)) {
++    return null;
+   }
+ 
+-  const candidates: Candidate[] = [];
+-  let discarded = 0;
++  const rawText = item['text'];
++  if (typeof rawText !== 'string') {
++    return null;
++  }
+ 
+-  for (const item of items) {
+-    if (!isRecord(item)) {
+-      discarded += 1;
+-      continue;
+-    }
++  const text = normalizeText(rawText);
++  if (text === '' || text.length > MAX_LEN) {
++    return null;
++  }
+ 
+-    const rawText = item['text'];
+-    if (typeof rawText !== 'string') {
+-      discarded += 1;
+-      continue;
+-    }
++  const completed = item['completed'];
++  if (typeof completed !== 'boolean') {
++    return null;
++  }
+ 
+-    const text = normalizeText(rawText);
+-    if (text === '' || text.length > MAX_LEN) {
+-      discarded += 1;
+-      continue;
+-    }
++  const rawId = item['id'];
++  const id = typeof rawId === 'number' && isValidTodoId(rawId) ? rawId : null;
+ 
+-    const completed = item['completed'];
+-    if (typeof completed !== 'boolean') {
++  return { text, completed, id };
++}
++
++/** 逐条校验并统计被丢弃的条数。 */
++function collectCandidates(items: readonly unknown[]): {
++  candidates: TodoCandidate[];
++  discarded: number;
++} {
++  const candidates: TodoCandidate[] = [];
++  let discarded = 0;
++
++  for (const item of items) {
++    const candidate = toCandidate(item);
++    if (candidate === null) {
+       discarded += 1;
+       continue;
+     }
+-
+-    const rawId = item['id'];
+-    const id = typeof rawId === 'number' && isValidTodoId(rawId) ? rawId : null;
+-
+-    candidates.push({ text, completed, id });
++    candidates.push(candidate);
+   }
+ 
++  return { candidates, discarded };
++}
++
++/**
++ * 保留首次出现的 id，重复项把 id 置 null 等待重新分配；
++ * 返回已占用 id 的集合，供后续分配新 id 时避开。
++ */
++function reserveUniqueIds(candidates: TodoCandidate[]): Set<number> {
+   const usedIds = new Set<number>();
++
+   for (const candidate of candidates) {
+     if (candidate.id !== null && usedIds.has(candidate.id)) {
+       candidate.id = null;
++      continue;
+     }
+     if (candidate.id !== null) {
+       usedIds.add(candidate.id);
+     }
+   }
+ 
++  return usedIds;
++}
++
++/** 已占用 id 的最大值 + 1；集合为空时从 1 开始。 */
++function nextCandidateId(usedIds: ReadonlySet<number>): number {
+   let nextId = 1;
+   for (const id of usedIds) {
+     if (id >= nextId) {
+       nextId = id + 1;
+     }
+   }
++  return nextId;
++}
++
++/** 从 startId 起找第一个未占用的 id；越过安全整数上限时返回 null。 */
++function findFreeId(
++  usedIds: ReadonlySet<number>,
++  startId: number,
++): number | null {
++  let id = startId;
++  while (usedIds.has(id)) {
++    id += 1;
++  }
++  return Number.isSafeInteger(id) ? id : null;
++}
+ 
++/**
++ * 给缺失 id 的候选分配新 id，并生成最终 Todo 列表。
++ * id 用尽时丢弃该条并计入 discarded，与重构前一致。
++ */
++function materializeTodos(
++  candidates: readonly TodoCandidate[],
++  usedIds: Set<number>,
++  startId: number,
++): { todos: Todo[]; discarded: number } {
+   const todos: Todo[] = [];
++  let nextId = startId;
++  let discarded = 0;
++
+   for (const candidate of candidates) {
+-    let id = candidate.id;
++    if (candidate.id !== null) {
++      todos.push({
++        id: candidate.id,
++        text: candidate.text,
++        completed: candidate.completed,
++      });
++      continue;
++    }
++
++    const id = findFreeId(usedIds, nextId);
+     if (id === null) {
+-      while (usedIds.has(nextId)) {
+-        nextId += 1;
+-      }
+-      if (!Number.isSafeInteger(nextId)) {
+-        discarded += 1;
+-        continue;
+-      }
+-      id = nextId;
+-      usedIds.add(id);
+-      nextId += 1;
++      discarded += 1;
++      continue;
+     }
++    usedIds.add(id);
++    nextId = id + 1;
+     todos.push({ id, text: candidate.text, completed: candidate.completed });
+   }
+ 
+   return { todos, discarded };
+ }
+ 
++/**
++ * 从存储恢复。localStorage 与用户输入一样不可信，因此：
++ *   · 读取 / JSON.parse 抛异常 → 空列表；
++ *   · 顶层不是数组 → 空列表；
++ *   · 单条形状不对（null、text 非字符串、completed 非布尔、超长）→ 丢弃；
++ *   · id 缺失 / 重复 / 非法 → 重新分配，不丢弃整条业务数据；
++ *   · 每一步都不使用 any，JSON.parse 的结果先收窄为 unknown。
++ */
++export function loadTodos(
++  storage: StorageLike | null,
++  key: string,
++): LoadTodosResult {
++  const items = readStoredItems(storage, key);
++  if (items === null) {
++    return { todos: [], discarded: 0 };
++  }
++
++  const { candidates, discarded: discardedItems } = collectCandidates(items);
++  const usedIds = reserveUniqueIds(candidates);
++  const { todos, discarded: discardedIds } = materializeTodos(
++    candidates,
++    usedIds,
++    nextCandidateId(usedIds),
++  );
++
++  return { todos, discarded: discardedItems + discardedIds };
++}
++
+ /** 保存失败只返回 false，由 UI 决定是否提示；绝不让异常打断渲染。 */
+ export function saveTodos(
+   storage: StorageLike | null,
+   key: string,
+   todos: readonly Todo[],

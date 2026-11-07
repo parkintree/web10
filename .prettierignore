@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+package-lock.json
+*.docx
+_*
+# 简历 HTML 保留手工排版：注释块与内联元素之间的空白是有意为之
+index.html
+
+# 重构前源码快照（仅作 diff 证据，不参与构建）
+docs/before/
+# 无头浏览器 dump 的原始 DOM（生成物）
+docs/smoke-dom.html

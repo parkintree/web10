@@ -1,0 +1,12 @@
+
+ RUN  v5.1.0 E:/大三/Web/web10
+
+ ✓ tests/_equivalence.test.ts > loadTodos 重构前后差分 > 固定边界输入 2ms
+ ✓ tests/_equivalence.test.ts > loadTodos 重构前后差分 > 2000 组随机脏数据 26ms
+ ✓ tests/_equivalence.test.ts > loadTodos 重构前后差分 > 重复 / 非法 id 的排列组合 10ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  22:26:17
+   Duration  234ms (tests 42%, transform 36%, import 15%, worker 6%)
+

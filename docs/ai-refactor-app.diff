@@ -1,0 +1,116 @@
+diff --git a/docs/before/todo-app.ts b/src/todo-app.ts
+index 78d9414..cc9f07d 100644
+--- a/docs/before/todo-app.ts
++++ b/src/todo-app.ts
+@@ -6,11 +6,11 @@
+  *   2. id 由 string 改为 number：写入 dataset 时 String(todo.id)，
+  *      读出时 parseTodoId(item.dataset.id) 显式转换并校验；
+  *   3. 所有可能为 null 的查询都有类型守卫，strictNullChecks 下零报错；
+  *   4. 删除 / 切换 / 编辑仍使用事件委托，重绘不丢监听。
+  *
+- * 构建：npm run build 会用 esbuild 把本文件及其依赖打包成 resume/todo.js。
++ * 构建：npm run build 先 tsc --noEmit 类型检查，再由 Vite 打包到 dist/。
+  */
+ 
+ import {
+   MAX_LEN,
+   addTodo,
+@@ -84,57 +84,56 @@ function getFilters(): readonly HTMLButtonElement[] {
+     }
+   }
+   return buttons;
+ }
+ 
+-function initDom(): DomRefs | null {
+-  const input = getById('todo-input', HTMLInputElement);
+-  const addBtn = getById('todo-add', HTMLButtonElement);
+-  const list = getById('todo-list', HTMLUListElement);
+-  const tip = getById('todo-tip', HTMLElement);
+-  const empty = getById('todo-empty', HTMLElement);
+-  const filterWrap = getById('todo-filters', HTMLElement);
+-  const summary = getById('todo-summary', HTMLElement);
+-  const countAll = getById('todo-count-all', HTMLElement);
+-  const countActive = getById('todo-count-active', HTMLElement);
+-  const countCompleted = getById('todo-count-completed', HTMLElement);
+-  const filters = getFilters();
+-
+-  if (
+-    input === null ||
+-    addBtn === null ||
+-    list === null ||
+-    tip === null ||
+-    empty === null ||
+-    filterWrap === null ||
+-    summary === null ||
+-    countAll === null ||
+-    countActive === null ||
+-    countCompleted === null ||
+-    filters.length === 0
+-  ) {
+-    console.warn(
+-      '[待办清单] 初始化失败：页面缺少必要的 DOM 节点，本模块已跳过。',
+-    );
+-    return null;
+-  }
++/** 每个引用都可能是 null，查询完成后统一做一次完整性判断。 */
++type NullableDomRefs = { [K in keyof DomRefs]: DomRefs[K] | null };
+ 
++function queryDomRefs(): NullableDomRefs {
+   return {
+-    input,
+-    addBtn,
+-    list,
+-    tip,
+-    empty,
+-    filterWrap,
+-    filters,
+-    summary,
+-    countAll,
+-    countActive,
+-    countCompleted,
++    input: getById('todo-input', HTMLInputElement),
++    addBtn: getById('todo-add', HTMLButtonElement),
++    list: getById('todo-list', HTMLUListElement),
++    tip: getById('todo-tip', HTMLElement),
++    empty: getById('todo-empty', HTMLElement),
++    filterWrap: getById('todo-filters', HTMLElement),
++    summary: getById('todo-summary', HTMLElement),
++    countAll: getById('todo-count-all', HTMLElement),
++    countActive: getById('todo-count-active', HTMLElement),
++    countCompleted: getById('todo-count-completed', HTMLElement),
++    filters: getFilters(),
+   };
+ }
+ 
++/** 类型守卫：所有引用都非 null 时，才允许把 NullableDomRefs 收窄成 DomRefs。 */
++function hasAllRefs(refs: NullableDomRefs): refs is DomRefs {
++  return Object.values(refs).every((value) => value !== null);
++}
++
++function warnMissingDom(): null {
++  console.warn(
++    '[待办清单] 初始化失败：页面缺少必要的 DOM 节点，本模块已跳过。',
++  );
++  return null;
++}
++
++function initDom(): DomRefs | null {
++  const refs = queryDomRefs();
++  /*
++   * filters 是数组而不是元素：空数组不是 null，hasAllRefs 检查不出来，
++   * 所以单独判断 length。两种失败都走同一条告警路径。
++   */
++  if (refs.filters === null || refs.filters.length === 0) {
++    return warnMissingDom();
++  }
++  if (!hasAllRefs(refs)) {
++    return warnMissingDom();
++  }
++  return refs;
++}
++
+ /* ---------------- 存储适配 ---------------- */
+ 
+ function getStorage(): StorageLike | null {
+   try {
+     const local = window.localStorage;

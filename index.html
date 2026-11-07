@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 打印 / 导出 PDF 时作为文档标题 -->
+  <meta name="author" content="【你的姓名】">
+  <title>【你的姓名】- 个人简历</title>
+
+  <!-- 样式表：由 Vite 从 src/style.css 处理（web10 版：web05 Grid 栅格 + Vite 工程化待办清单） -->
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+
+<body>
+  <!-- ==========================================================
+       页面级 Grid 容器
+       · 定义两个语义化栅格区域：sidebar（侧边栏）/ main（主内容区）
+       · 列宽比、区域排布全部由 CSS 的 grid-template-columns /
+         grid-template-areas 控制，此处的 DOM 顺序即移动端堆叠顺序
+       ========================================================== -->
+  <div class="resume">
+
+    <!-- ==========================================================
+         grid-area: sidebar —— 左侧窄栏
+         内部为纵向单列子栅格：证件照/姓名、基本信息、求职意向、
+         专业技能、获奖荣誉，模块间距统一由 gap 控制
+         ========================================================== -->
+    <aside class="sidebar">
+
+      <!-- ---------- 模块 1：证件照 + 姓名 ---------- -->
+      <header>
+        <div class="photo">【证件照】</div>
+        <h1 class="name">【你的姓名】</h1>
+        <p class="name-sub">【目标岗位，如：产品经理】</p>
+      </header>
+
+      <!-- ---------- 模块 1：个人基本信息 ---------- -->
+      <section class="section" aria-labelledby="sec-basic">
+        <h2 id="sec-basic">基本信息</h2>
+        <dl class="info-list">
+          <dt>联系电话</dt>
+          <dd>【138-0000-0000】</dd>
+
+          <dt>电子邮箱</dt>
+          <dd>【your.name@example.com】</dd>
+
+          <dt>所在城市</dt>
+          <dd>【现居城市，如：北京 · 朝阳区】</dd>
+
+          <dt>到岗时间</dt>
+          <dd>【随时到岗 / 一周内到岗 / 一个月内到岗】</dd>
+        </dl>
+      </section>
+
+      <!-- ---------- 模块 2：求职意向 ---------- -->
+      <section class="section" aria-labelledby="sec-intent">
+        <h2 id="sec-intent">求职意向</h2>
+        <dl class="info-list">
+          <dt>目标岗位</dt>
+          <dd>【目标岗位，如：产品经理 / 前端开发工程师】</dd>
+
+          <dt>期望城市</dt>
+          <dd>【期望工作城市，如：北京 / 上海 / 杭州】</dd>
+
+          <dt>期望薪资</dt>
+          <dd>【如：15K–20K · 13 薪 / 面议】</dd>
+        </dl>
+      </section>
+
+      <!-- ---------- 模块 6：专业技能 ---------- -->
+      <section class="section" aria-labelledby="sec-skill">
+        <h2 id="sec-skill">专业技能</h2>
+
+        <!-- 硬技能：软件工具 -->
+        <div class="skill-group">
+          <h3>软件工具</h3>
+          <ul>
+            <li>【Axure RP、Xmind、Figma、Visio】</li>
+            <li>【SQL、Excel（数据透视表 / 常用函数）】</li>
+            <li>【Tableau / Power BI 数据可视化】</li>
+          </ul>
+        </div>
+
+        <!-- 硬技能：专业能力 -->
+        <div class="skill-group">
+          <h3>专业能力</h3>
+          <ul>
+            <li>【需求调研与文档撰写（PRD / MRD）】</li>
+            <li>【原型设计与交互流程梳理】</li>
+            <li>【数据分析与竞品分析】</li>
+            <li>【敏捷项目管理（Scrum / Jira）】</li>
+          </ul>
+        </div>
+
+        <!-- 硬技能：证书 -->
+        <div class="skill-group">
+          <h3>证书资质</h3>
+          <ul>
+            <li>【PMP 项目管理专业人士资格认证】</li>
+            <li>【大学英语六级 CET-6（【580】分）】</li>
+            <li>【全国计算机等级考试二级】</li>
+          </ul>
+        </div>
+
+        <!-- 软技能 -->
+        <div class="skill-group">
+          <h3>软技能</h3>
+          <ul>
+            <li>【跨部门沟通与协作】</li>
+            <li>【结构化表达与逻辑归纳】</li>
+            <li>【抗压能力与多任务并行】</li>
+            <li>【快速学习与主动复盘】</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ---------- 模块 7：获奖荣誉（按含金量从高到低排序） ---------- -->
+      <section class="section" aria-labelledby="sec-award">
+        <h2 id="sec-award">获奖荣誉</h2>
+        <ul class="award-list">
+          <li>
+            <span class="award-name">【国家奖学金（国家级）】</span>
+            <span class="award-meta">【教育部】 · 【2021.10】</span>
+          </li>
+          <li>
+            <span class="award-name">【全国大学生数学建模竞赛 二等奖】</span>
+            <span class="award-meta">【中国工业与应用数学学会】 · 【2021.09】</span>
+          </li>
+          <li>
+            <span class="award-name">【校级优秀毕业生】</span>
+            <span class="award-meta">【XX 大学】 · 【2023.06】</span>
+          </li>
+          <li>
+            <span class="award-name">【校级一等奖学金（连续三年）】</span>
+            <span class="award-meta">【XX 大学】 · 【2020.09 – 2022.09】</span>
+          </li>
+        </ul>
+      </section>
+
+    </aside>
+
+    <!-- ==========================================================
+         grid-area: main —— 右侧宽栏
+         内部同样为纵向单列子栅格：工作/实习经历、项目经历、
+         教育背景、自我评价、作品集/附件链接、待办清单
+         ========================================================== -->
+    <main class="main">
+
+      <!-- ---------- 模块 4：工作 / 实习经历（时间倒序，STAR 逻辑） ---------- -->
+      <section class="section" aria-labelledby="sec-work">
+        <h2 id="sec-work">工作 / 实习经历</h2>
+
+        <article class="entry">
+          <div class="entry-head">
+            <h3 class="entry-title">【XX 科技有限公司】</h3>
+            <span class="entry-date">【2023.07 – 至今】</span>
+          </div>
+          <p class="entry-role">【职位：产品经理】 · 【所属部门：用户增长部】</p>
+          <ul>
+            <li>【S 背景 / T 任务】负责【XX 核心业务线】的产品规划与迭代，覆盖【XX 万】月活用户，主导从需求调研到上线复盘的全流程。</li>
+            <li>【A 行动】通过【用户访谈 + 埋点数据分析】，定位【注册转化率偏低】的核心症结，输出 PRD 并推动研发、设计、运营三方落地，历时【XX】周完成改版。</li>
+            <li>【A 行动】搭建【周度数据看板】，建立【XX】项核心指标的监控口径，将需求优先级评估周期从【XX】天压缩至<strong>【XX】天</strong>。</li>
+            <li>【R 成果】改版上线后【注册转化率】由【XX%】提升至<strong>【XX%】</strong>，环比增长<strong>【XX%】</strong>；该项目年度带来增量营收约<strong>【XX
+                万元】</strong>。</li>
+          </ul>
+        </article>
+
+        <article class="entry">
+          <div class="entry-head">
+            <h3 class="entry-title">【XX 网络科技有限公司】</h3>
+            <span class="entry-date">【2022.09 – 2023.03】</span>
+          </div>
+          <p class="entry-role">【职位：产品实习生】 · 【所属部门：商业化中心】</p>
+          <ul>
+            <li>【S 背景 / T 任务】参与【XX 广告投放平台】的需求梳理，独立负责【XX 模块】的功能设计与文档撰写。</li>
+            <li>【A 行动】完成【XX】份竞品分析报告与【XX】份用户调研纪要，输出【XX】份 PRD 文档，累计沉淀【XX】条需求池条目。</li>
+            <li>【R 成果】所负责模块按期上线，上线后【人工操作步骤】减少【XX】步，运营同学单次配置耗时下降<strong>【XX%】</strong>。</li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- ---------- 模块 5：项目经历（时间倒序） ---------- -->
+      <section class="section" aria-labelledby="sec-project">
+        <h2 id="sec-project">项目经历</h2>
+
+        <article class="entry">
+          <div class="entry-head">
+            <h3 class="entry-title">【XX 后台管理系统重构项目】</h3>
+            <span class="entry-date">【2023.09 – 2024.03】</span>
+          </div>
+          <p class="entry-role">【担任角色：产品负责人】 · 【项目周期：6 个月】 · 【团队规模：【8】人】</p>
+          <ul>
+            <li>【项目背景】原系统页面层级混乱、【XX】个功能模块入口分散，一线运营人员平均任务完成时长超过【XX】分钟，投诉率居高不下。</li>
+            <li>【个人职责】负责整体信息架构重设计、权限模型梳理与迭代排期；主导【XX】场跨部门评审，协调研发与业务方对齐目标。</li>
+            <li>
+              【项目成果】重构后【任务完成时长】缩短至<strong>【XX】分钟</strong>，效率提升<strong>【XX%】</strong>；用户满意度评分由【XX】分提升至<strong>【XX】分</strong>（满分
+              5 分）。</li>
+          </ul>
+        </article>
+
+        <article class="entry">
+          <div class="entry-head">
+            <h3 class="entry-title">【XX 校园二手交易平台】</h3>
+            <span class="entry-date">【2022.03 – 2022.08】</span>
+          </div>
+          <p class="entry-role">【担任角色：项目负责人 / 前端开发】 · 【项目周期：5 个月】 · 【团队规模：【5】人】</p>
+          <ul>
+            <li>【项目背景】校内二手交易长期依赖社交群组，信息零散、无信用体系，交易纠纷频发。</li>
+            <li>【个人职责】负责需求定义与技术选型，独立完成【商品发布、检索、下单】等【XX】个核心页面的开发，并搭建简易信用评价机制。</li>
+            <li>【项目成果】上线【XX】个月累计注册用户<strong>【XX】人</strong>，发布商品【XX】件，日活峰值<strong>【XX】人</strong>；获【校级创新创业大赛三等奖】。</li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- ---------- 模块 3：教育背景（时间倒序） ---------- -->
+      <section class="section" aria-labelledby="sec-edu">
+        <h2 id="sec-edu">教育背景</h2>
+
+        <article class="entry">
+          <div class="entry-head">
+            <h3 class="entry-title">【XX 大学】</h3>
+            <span class="entry-date">【2021.09 – 2024.06】</span>
+          </div>
+          <p class="entry-role">【硕士研究生】 · 【专业：计算机科学与技术】 · 【全日制】</p>
+          <p class="entry-extra">
+            GPA：<strong>【3.8 / 4.0（专业排名前 5%）】</strong>｜核心课程：【机器学习、数据挖掘、高级算法、人机交互】
+          </p>
+        </article>
+
+        <article class="entry">
+          <div class="entry-head">
+            <h3 class="entry-title">【XX 大学】</h3>
+            <span class="entry-date">【2017.09 – 2021.06】</span>
+          </div>
+          <p class="entry-role">【本科】 · 【专业：软件工程】 · 【全日制】</p>
+          <p class="entry-extra">
+            GPA：<strong>【3.7 / 4.0】</strong>｜核心课程：【数据结构、操作系统、计算机网络、数据库原理、软件工程】
+          </p>
+        </article>
+      </section>
+
+      <!-- ---------- 模块 8：自我评价（3–4 句核心优势） ---------- -->
+      <section class="section summary" aria-labelledby="sec-summary">
+        <h2 id="sec-summary">自我评价</h2>
+        <p>【拥有 X 年 XX 领域经验，熟悉从需求调研、方案设计到落地复盘的完整链路，能够独立负责中等复杂度项目的全周期推进。】</p>
+        <p>【擅长以数据驱动决策，习惯用指标拆解业务问题，曾主导的 XX 项目实现核心指标提升 XX%，具备较强的结果导向意识。】</p>
+        <p>【沟通协调能力突出，能在研发、设计、业务多方之间高效对齐目标，抗压性强，可适应快节奏的迭代环境。】</p>
+        <p>【持续学习者，关注 XX 行业动态与前沿工具，希望在 XX 岗位上把专业能力转化为可衡量的业务价值。】</p>
+      </section>
+
+      <!-- ---------- 模块 9：作品集 / 附件链接 ---------- -->
+      <section class="section" aria-labelledby="sec-portfolio">
+        <h2 id="sec-portfolio">作品集 / 附件链接</h2>
+        <ul class="link-list">
+          <li>
+            <span class="link-label">GitHub</span>
+            <a href="#">【https://github.com/your-name】</a>
+          </li>
+          <li>
+            <span class="link-label">个人博客</span>
+            <a href="#">【https://your-blog.example.com】</a>
+          </li>
+          <li>
+            <span class="link-label">作品集网站</span>
+            <a href="#">【https://your-portfolio.example.com】</a>
+          </li>
+          <li>
+            <span class="link-label">在线简历 PDF</span>
+            <a href="#">【https://example.com/resume.pdf（提取码：【XXXX】）】</a>
+          </li>
+        </ul>
+      </section>
+
+      <!-- ==========================================================
+           模块 10：待办清单 —— web09 TypeScript 重构版（V2.0）
+           ----------------------------------------------------------
+           W9 在 web08 事件委托版的基础上完成 TypeScript 重构：
+             · 数据规则集中在 src/todo-core.ts（纯函数，可独立单测）；
+             · DOM / 事件 / 存储适配集中在 src/todo-app.ts；
+             · Todo.id 由 string 改为 number，写入 dataset 时显式 String(id)，
+               读取时用 parseTodoId() 做「字符串 → number」的校验转换；
+             · strict + noUncheckedIndexedAccess，源码与测试均不使用 any；
+             · 本目录 todo.js 是 npm run build（esbuild）生成的浏览器产物。
+           交互沿用 W8 的事件委托：
+             · click  + closest('li') + dataset.id  → 编辑 / 删除
+             · change + closest('li') + dataset.id  → 切换
+             删除是终止性操作，处理完立即 return，不会继续执行切换。
+
+           结构说明（自上而下，均为 .section 的纵向子栅格项）：
+             ① .todo-form    录入行：输入框 + 添加按钮
+             ② .todo-tip     提示条：校验 / 删除 / 清除操作的统一反馈出口
+             ③ .todo-toolbar 筛选栏：全部 / 未完成 / 已完成 + 条数统计
+             ④ .todo-list    列表：内容完全由 render() 根据 todos 生成
+             ⑤ .todo-empty   空状态：列表非空时由 CSS 的 :not(:empty) 自动隐藏
+
+           注意：#todo-list 的标签之间必须保持「零空白字符」
+           （即开始标签与结束标签紧邻，不要换行缩进），
+           否则 :empty 判定为假，空状态提示永远不会显示。
+           插入位置为主内容区最后一个 .section：
+           模块间距由 .main 栅格的 row-gap 统一给出，本模块不含任何 margin，
+           因此新增它不会改变上方既有区块的间距与排布。
+           ========================================================== -->
+      <section class="section todo" aria-labelledby="sec-todo">
+        <h2 id="sec-todo">待办清单</h2>
+
+        <!-- ① 录入行：移动端单列（输入框在上、按钮在下），≥768px 转为两列同行 -->
+        <div class="todo-form">
+          <!-- 视觉上隐藏但可被读屏软件识别的标签：表单控件必须有可访问名称 -->
+          <label class="sr-only" for="todo-input">待办内容</label>
+          <input id="todo-input" class="todo-input" type="text" maxlength="120" autocomplete="off"
+                 placeholder="输入待办内容，按回车键或点击「添加」">
+          <!-- type="button" 显式声明：避免该按钮在将来被放入 <form> 时触发原生提交 -->
+          <button id="todo-add" class="todo-add" type="button">添加</button>
+        </div>
+
+        <!-- ② 提示条：role="status" + aria-live 让读屏软件自动播报校验结果；
+             内容为空时由 CSS 的 :empty 隐藏，不占用栅格轨道 -->
+        <p id="todo-tip" class="todo-tip" role="status" aria-live="polite"></p>
+
+        <!-- ③ 筛选栏：
+             · data-filter 声明每个按钮对应的视图状态（all / active / completed）
+             · aria-pressed 同时承载「当前选中」的无障碍语义与视觉状态，
+               由 JS 在 updateFilters() 中随 currentFilter 同步更新
+             · 按钮内 .todo-count 显示各状态条数，统计始终来自 todos -->
+        <div class="todo-toolbar">
+          <div id="todo-filters" class="todo-filters" role="group" aria-label="按完成状态筛选待办">
+            <button class="todo-filter" type="button" data-filter="all" aria-pressed="true">
+              全部 <span id="todo-count-all" class="todo-count">0</span>
+            </button>
+            <button class="todo-filter" type="button" data-filter="active" aria-pressed="false">
+              未完成 <span id="todo-count-active" class="todo-count">0</span>
+            </button>
+            <button class="todo-filter" type="button" data-filter="completed" aria-pressed="false">
+              已完成 <span id="todo-count-completed" class="todo-count">0</span>
+            </button>
+          </div>
+          <p id="todo-summary" class="todo-summary" aria-live="polite">共 0 条 · 未完成 0 条</p>
+        </div>
+
+        <!-- ④ 列表：完全由 render() 生成，JS 不在此写任何静态条目 -->
+        <ul id="todo-list" class="todo-list"></ul>
+
+        <!-- ⑤ 空状态：.todo-list 非空时自动被 CSS 隐藏；
+             文案随当前筛选由 JS（updateEmptyState）更新 -->
+        <p id="todo-empty" class="todo-empty">暂无待办，输入内容后点击「添加」或按回车键即可新增。</p>
+
+        <!-- JS 被禁用 / 加载失败时的降级说明（渐进增强） -->
+        <noscript>
+          <p class="todo-empty">当前浏览器已禁用 JavaScript，待办清单功能不可用；简历其余内容不受影响。</p>
+        </noscript>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ==========================================================
+       脚本：置于 </body> 之前（而非 <head>）
+       ----------------------------------------------------------
+       · Vite 以 ES Module 加载 src/main.ts（内部引入 todo-app.ts），
+         模块脚本默认 defer，执行时 #todo-input 等节点已全部进入 DOM 树，
+         从根源上避免 getElementById 返回 null。
+       · 仅按课程要求把 clearCompleted 挂到 window，供控制台验收调用，
+         其余函数与 todos 均不泄漏，不与页面其他代码产生命名冲突。
+       · 数据驱动架构（todos → saveTodos → render）与各函数职责
+         见 src/todo-app.ts 头部注释。
+       ========================================================== -->
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>

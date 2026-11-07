@@ -1,0 +1,58 @@
+
+E:\大三\Web\web10\src\todo-app.ts
+   67:1   error    Function 'getById' has a complexity of 3. Maximum allowed is 1            complexity
+   78:1   error    Function 'getFilters' has a complexity of 3. Maximum allowed is 1         complexity
+  114:3   warning  Unexpected console statement                                              no-console
+  120:1   error    Function 'initDom' has a complexity of 4. Maximum allowed is 1            complexity
+  137:1   error    Function 'getStorage' has a complexity of 2. Maximum allowed is 1         complexity
+  150:1   error    Function 'persist' has a complexity of 2. Maximum allowed is 1            complexity
+  158:1   error    Function 'clearTip' has a complexity of 3. Maximum allowed is 1           complexity
+  168:1   error    Function 'showTip' has a complexity of 2. Maximum allowed is 1            complexity
+  174:32  error    Arrow function has a complexity of 2. Maximum allowed is 1                complexity
+  196:1   error    Function 'createTodoItem' has a complexity of 2. Maximum allowed is 1     complexity
+  239:1   error    Function 'render' has a complexity of 3. Maximum allowed is 1             complexity
+  255:1   error    Function 'updateCounts' has a complexity of 2. Maximum allowed is 1       complexity
+  266:1   error    Function 'updateFilters' has a complexity of 5. Maximum allowed is 1      complexity
+  283:1   error    Function 'updateEmptyState' has a complexity of 2. Maximum allowed is 1   complexity
+  292:1   error    Function 'handleAdd' has a complexity of 4. Maximum allowed is 1          complexity
+  320:1   error    Function 'handleDelete' has a complexity of 2. Maximum allowed is 1       complexity
+  332:1   error    Function 'handleToggle' has a complexity of 2. Maximum allowed is 1       complexity
+  344:1   error    Function 'handleEdit' has a complexity of 4. Maximum allowed is 1         complexity
+  368:1   error    Function 'setFilter' has a complexity of 3. Maximum allowed is 1          complexity
+  376:1   error    Function 'clearAllCompleted' has a complexity of 2. Maximum allowed is 1  complexity
+  389:1   error    Function 'restoreFocus' has a complexity of 4. Maximum allowed is 1       complexity
+  405:1   error    Function 'handleListClick' has a complexity of 10. Maximum allowed is 1   complexity
+  440:1   error    Function 'handleListChange' has a complexity of 7. Maximum allowed is 1   complexity
+  467:1   error    Function 'handleFilterClick' has a complexity of 3. Maximum allowed is 1  complexity
+  482:42  error    Arrow function has a complexity of 4. Maximum allowed is 1                complexity
+  502:1   error    Function 'init' has a complexity of 5. Maximum allowed is 1               complexity
+  516:5   warning  Unexpected console statement                                              no-console
+  519:5   warning  Unexpected console statement                                              no-console
+
+E:\大三\Web\web10\src\todo-core.ts
+   64:8   error  Function 'isValidTodoId' has a complexity of 2. Maximum allowed is 1      complexity
+   75:8   error  Function 'parseTodoId' has a complexity of 5. Maximum allowed is 1        complexity
+   87:8   error  Function 'isTodoFilter' has a complexity of 3. Maximum allowed is 1       complexity
+  103:1   error  Function 'validateText' has a complexity of 4. Maximum allowed is 1       complexity
+  118:5   error  Arrow function has a complexity of 2. Maximum allowed is 1                complexity
+  131:8   error  Function 'addTodo' has a complexity of 3. Maximum allowed is 1            complexity
+  154:8   error  Function 'toggleTodo' has a complexity of 5. Maximum allowed is 1         complexity
+  182:8   error  Function 'removeTodo' has a complexity of 3. Maximum allowed is 1         complexity
+  203:8   error  Function 'editTodo' has a complexity of 5. Maximum allowed is 1           complexity
+  231:22  error  Arrow function has a complexity of 2. Maximum allowed is 1                complexity
+  242:8   error  Function 'nextTodoId' has a complexity of 4. Maximum allowed is 1         complexity
+  253:8   error  Function 'getVisibleTodos' has a complexity of 3. Maximum allowed is 1    complexity
+  266:8   error  Function 'getTodoStats' has a complexity of 3. Maximum allowed is 1       complexity
+  280:1   error  Function 'isRecord' has a complexity of 2. Maximum allowed is 1           complexity
+  295:1   error  Function 'readStoredItems' has a complexity of 7. Maximum allowed is 1    complexity
+  334:1   error  Function 'toCandidate' has a complexity of 8. Maximum allowed is 1        complexity
+  361:1   error  Function 'collectCandidates' has a complexity of 3. Maximum allowed is 1  complexity
+  384:1   error  Function 'reserveUniqueIds' has a complexity of 5. Maximum allowed is 1   complexity
+  401:1   error  Function 'nextCandidateId' has a complexity of 3. Maximum allowed is 1    complexity
+  412:1   error  Function 'findFreeId' has a complexity of 3. Maximum allowed is 1         complexity
+  427:1   error  Function 'materializeTodos' has a complexity of 4. Maximum allowed is 1   complexity
+  467:8   error  Function 'loadTodos' has a complexity of 2. Maximum allowed is 1          complexity
+  488:8   error  Function 'saveTodos' has a complexity of 3. Maximum allowed is 1          complexity
+
+✖ 51 problems (48 errors, 3 warnings)
+

@@ -1,0 +1,17 @@
+PASS  纯空白不能添加  [内容不能为空，请输入待办事项。]
+PASS  61 字被拒绝  [内容过长，最多 60 字，请精简后重试。]
+PASS  60 字通过  [共 1 条 · 未完成 1 条]
+PASS  空白规范化  [["买 牛奶","aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]]
+PASS  重复内容被拒绝  [该待办已存在，无需重复添加。]
+PASS  切换：未完成 → 已完成  [共 2 条 · 未完成 2 条]
+PASS  切换：已完成 → 未完成  [共 2 条 · 未完成 2 条]
+PASS  删除只移除目标条目  [["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]]
+PASS  删除不会顺带切换其余条目  [共 1 条 · 未完成 1 条]
+PASS  非法 dataset.id 拒绝切换  [待办编号无效，本次切换已取消。]
+PASS  HTML 按纯文本保存  ["<img src=x onerror=\"window.__xss=1\">"]
+PASS  脏数据恢复：3 条有效数据  [["恢复一","恢复二","恢复三"]]
+PASS  脏数据恢复：id 唯一且合法  [["1","2","3"]]
+PASS  脏数据恢复：完成状态保留  [共 3 条 · 未完成 1 条]
+PASS  clearCompleted 清除 2 条  [removed=2 left=["恢复一"]]
+
+TOTAL 15/15 ALL PASS

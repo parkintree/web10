@@ -1,0 +1,1202 @@
+/* ==============================================================
+   【你的姓名】- 个人简历样式表
+   web05 版：CSS Grid 栅格系统重构 + 全断点响应式布局适配
+   --------------------------------------------------------------
+   纯原生 CSS，无任何外部框架 / 库 / 外部字体 / 外部图片。
+
+   相对 web04 的改动范围（仅布局架构，视觉风格与内容不变）：
+     · 布局   Flex 分栏        →  原生 CSS Grid 栅格（页面级 / 模块级 / 列表级）
+     · 间距   零散 margin      →  统一 gap 令牌（横向 gap : 纵向 gap 恒为 1 : 1.5）
+     · 响应式 单一断点(<768)   →  移动优先的四档断点（<768 / 768 / 1024 / 1440）
+     · 字号   固定 px          →  rem + html 字号阶梯（14px / 15px / 16px）
+     · 图片   定宽定高         →  width:100% + aspect-ratio + object-fit:cover
+     · 打印   仅保留双栏       →  新增 A4 适配：去底色去装饰、锁定 Grid 双栏
+                                  并做到打印稿完全不依赖背景色（无需 !important）
+
+   未改动：全部类名、配色变量（--c-*）、字体族（--font-sans）、
+           内容结构、语义化标签、文档顺序。
+   --------------------------------------------------------------
+   目录：
+     0. 全局变量与基础重置
+     1. 页面级栅格框架（sidebar + main）
+     2. 侧边栏模块栅格
+     3. 主内容区模块栅格
+     4. 作品集 / 附件链接（栅格两列对齐）
+     5. 响应式断点
+        5.1 移动端基准（< 768px）
+        5.2 平板端（768px ~ 1023px）
+        5.3 桌面端（≥ 1024px）
+        5.4 大屏端（≥ 1440px）
+     6. 打印适配（A4）
+   ============================================================== */
+
+/* ==============================================================
+   0. 全局变量与基础重置
+   ============================================================== */
+:root {
+  /* ---- 配色（完全沿用 web04，未作任何改动） ---- */
+  --c-primary: #2c3e50; /* 主色：深蓝（侧边栏背景 / 标题色） */
+  --c-side-label: #9fb8cf; /* 侧边栏标签文字（低饱和浅蓝灰） */
+  --c-side-text: #d8dee5; /* 侧边栏正文 */
+  --c-side-strong: #ffffff; /* 侧边栏强调文字 */
+  --c-side-line: rgba(255, 255, 255, 0.22); /* 侧边栏分隔线 */
+  --c-text: #333333; /* 正文深灰 */
+  --c-text-sub: #55606b; /* 次级正文 */
+  --c-text-muted: #6b7280; /* 弱化说明文字（白底对比度 4.83:1，达 WCAG AA） */
+  --c-line: #e4e8eb; /* 主栏模块分隔浅灰线 */
+  --c-page-bg: #eef1f4; /* 屏幕浏览时的页面底色 */
+
+  /* ---- 栅格尺寸令牌 ---- */
+  --grid-max: 1200px; /* 全局最大内容宽度（页面级栅格上限） */
+  --grid-page-x: 20px; /* 桌面端页面左右安全边距 */
+  --grid-page-x-sm: 16px; /* 移动端 / 平板端页面左右安全边距（压缩后） */
+
+  /* ---- 栅格间距令牌：横向 gap : 纵向 gap 恒为 1 : 1.5 ----
+     全站所有栅格间距只从这三档取值，不再散落 margin。
+     L 模块级：sidebar / main 内各区块之间、区块标题与正文之间
+     M 组级  ：dt/dd 信息组之间、条目内部行之间
+     S 条目级：同组内的细分行（标签 ↔ 取值、条目首行 ↔ 副行）
+     XS 行内级：最紧密的行内分隔（技能项、链接行） */
+  --gap-x: 16px;
+  --gap-y: 24px;
+  --gap-x-md: 12px;
+  --gap-y-md: 18px;
+  --gap-x-sm: 6px;
+  --gap-y-sm: 9px;
+  --gap-x-xs: 4px;
+  --gap-y-xs: 6px;
+
+  /* ---- 字体族（沿用 web04） ---- */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Microsoft YaHei',
+    'PingFang SC', 'Hiragino Sans GB', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 字号阶梯的「基准锚点」：所有文字尺寸统一改用 rem，
+   改这一处即可让整页文字随断点等比缩放（阶梯见 5.1 ~ 5.3）。
+   用百分比而非 px，可保留用户浏览器的默认字号偏好（无障碍）。
+   87.5% = 16px × 87.5% = 14px，与 web04 移动端基础字号一致。 */
+html {
+  font-size: 87.5%; /* 移动端基础字号 14px */
+  -webkit-text-size-adjust: 100%; /* 防止 iOS 横屏自动放大字体 */
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 1rem; /* = 14px @ 移动端 */
+  line-height: 1.7;
+  color: var(--c-text);
+  background: var(--c-page-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 列表统一收紧：具体间距一律交给所在栅格的 gap，不再逐个设 margin */
+ul {
+  margin: 0;
+  padding: 0;
+  list-style-position: outside;
+}
+
+p {
+  margin: 0;
+}
+
+/* ==============================================================
+   1. 页面级栅格框架
+   --------------------------------------------------------------
+   · grid-template-areas 定义两个语义化区域：sidebar / main
+   · 列宽比由 grid-template-columns 控制（断点处重写即可整页重排）
+   · align-items: start —— 区域内容顶部对齐，不被拉伸变形
+   · gap: 0 —— 侧栏与主栏是同一张卡片上的两片色块，必须无缝相接；
+     模块之间的距离交给内部栅格的 gap（见 2 / 3 节）
+   ============================================================== */
+.resume {
+  display: grid;
+  /* 移动端基准：单列，两区域垂直堆叠（移动优先，向上增强） */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'sidebar'
+    'main';
+  align-items: start;
+  gap: 0;
+
+  /* 最大内容宽度 + 水平居中 + 左右安全边距 */
+  width: calc(100% - (var(--grid-page-x-sm) * 2));
+  max-width: var(--grid-max);
+  margin: 20px auto;
+
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.12);
+  overflow: hidden; /* 裁掉侧栏深色块的直角，贴合卡片圆角 */
+}
+
+/* 区域落位：栅格项通过 grid-area 认领 grid-template-areas 中的名字 */
+.sidebar {
+  grid-area: sidebar;
+}
+.main {
+  grid-area: main;
+}
+
+/* ==============================================================
+   2. 侧边栏栅格
+   --------------------------------------------------------------
+   纵向单列子栅格：头像、姓名、基本信息、求职意向、技能栈、获奖荣誉
+   各模块作为栅格项依次排布，模块间距 = row-gap，垂直自动对齐。
+   ============================================================== */
+.sidebar {
+  /* 内部纵向单列栅格 */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start; /* 模块整体从顶部开始堆叠 */
+  align-items: start; /* 每个模块顶部对齐，不被行高拉伸 */
+  row-gap: var(--gap-y); /* 模块间距统一由 gap 控制 */
+
+  padding: 28px 20px;
+  background: var(--c-primary);
+  color: var(--c-side-text);
+
+  /* 页面级栅格中的唯一例外：侧栏深色块需要撑满整栏高度，
+     否则主栏内容更高时，深色块下方会露出白色缺口。
+     仅「拉伸背景」，其内部仍是 align-items: start，不会变形。 */
+  align-self: stretch;
+}
+
+/* 证件照 + 姓名区块：纵向单列栅格 */
+.sidebar header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  justify-items: stretch;
+  row-gap: var(--gap-y-sm);
+}
+
+/* 证件照占位框（3:4 标准一寸/两寸比例）
+   display: grid + place-items: center 让占位文字水平垂直居中。
+   宽度用 em 表达（= 本元素字号 12px × 8 = 96px），
+   字号随断点变时照片等比放大，无需在每个断点重写尺寸。 */
+.photo {
+  display: grid;
+  place-items: center;
+  width: 8em;
+  aspect-ratio: 3 / 4; /* 高度由宽度推导，改宽度不必同步改高度 */
+  justify-self: center; /* 栅格项居中，替代原来的 margin: 0 auto */
+  border: 1px dashed rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  overflow: hidden; /* 溢出兜底：极端比例照片被裁到框内，不撑破栅格 */
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.857rem; /* 12px @ 移动端 */
+  color: var(--c-side-label);
+  letter-spacing: 1px;
+}
+
+/* 回退：极少数不识别 aspect-ratio 的环境会整条丢弃该声明，
+   导致占位框高度塌回内容高（实测 128px → 22.4px）。
+   用 em 显式补上 96 × 4/3 的高度，随字号同步缩放，
+   仅在特性缺失时生效，不影响现代浏览器。 */
+@supports not (aspect-ratio: 3 / 4) {
+  .photo {
+    height: calc(8em * 4 / 3);
+  }
+}
+
+/* 放入真实证件照时的栅格适配：
+   · width: 100%   —— 图片宽度铺满栅格单元格
+   · height: auto  —— 高度自适应（不写死像素，随断点字号缩放）
+   · aspect-ratio  —— 关键：图片自身的宽高比声明后，auto 高度会按 3:4 解算，
+                      与容器锁定的 3:4 完全一致。若省掉这一行，auto 会回退到
+                      照片的原始比例：竖版照片把单元格撑高，横版照片留下空档。
+   · object-fit: cover —— 最后按 3:4 框做等比裁切。
+   四者配合，任何比例的原始照片都既不会拉伸变形，也不会溢出单元格。 */
+.photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.714rem; /* 24px @ 移动端 */
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--c-side-strong);
+  text-align: center;
+  letter-spacing: 3px;
+  text-indent: 3px; /* 补偿末字之后的字距，使居中不再左偏 */
+}
+
+.name-sub {
+  margin: 0;
+  font-size: 0.929rem; /* 13px @ 移动端 */
+  color: var(--c-side-label);
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* ---------- 侧边栏内的通用模块栅格 ----------
+   每个 .section 自己也是一块纵向单列栅格：
+   标题（h2）与后面的信息块 / 技能组成为同级栅格项，
+   标题与正文、正文与正文之间的间距全部由 row-gap 统一给出。 */
+.section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: start; /* 标题与详情自动左对齐且顶部对齐 */
+  row-gap: var(--gap-y-md);
+}
+
+/* 侧边栏模块标题：白色加粗 + 下划线 + 左侧短强调条 */
+.sidebar h2 {
+  position: relative;
+  margin: 0; /* 与下方内容的距离交给父栅格的 row-gap */
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--c-side-line);
+  font-size: 1rem; /* 14px @ 移动端 */
+  font-weight: 700;
+  color: var(--c-side-strong);
+  letter-spacing: 1px;
+}
+
+.sidebar h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 32px;
+  height: 2px;
+  background: var(--c-side-label);
+}
+
+/* 侧边栏三级小标题（技能分类名） */
+.sidebar h3 {
+  margin: 0;
+  font-size: 0.893rem; /* 12.5px @ 移动端 */
+  font-weight: 600;
+  color: var(--c-side-strong);
+}
+
+/* 基本信息 / 求职意向：dt、dd 作为栅格项纵向排布。
+   row-gap 负责「标签 ↔ 取值」的组内间距；
+   组与组之间由下面那条 dt 的上外边距统一拉开（全表唯一一处 margin 间距，
+   因为 grid gap 无法区分组内与组间，改用系统性单条规则而非逐项零散 margin）。 */
+.info-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  row-gap: var(--gap-y-xs);
+}
+
+.info-list dt {
+  font-size: 0.857rem; /* 12px @ 移动端 */
+  color: var(--c-side-label);
+  letter-spacing: 0.5px;
+}
+
+.info-list dt ~ dt {
+  margin-top: var(--gap-y-md); /* 组间：与 .section 的模块间距同档 */
+}
+
+.info-list dd {
+  margin: 0;
+  font-size: 0.929rem; /* 13px @ 移动端 */
+  color: var(--c-side-text);
+  overflow-wrap: break-word; /* 旧浏览器回退方案 */
+  overflow-wrap: anywhere; /* 仅在真正溢出时断行，不硬断英文单词 */
+}
+
+/* 侧边栏内的列表（技能 / 获奖） */
+.sidebar ul {
+  padding-left: 16px;
+  list-style: disc;
+}
+
+.sidebar li {
+  font-size: 0.893rem; /* 12.5px @ 移动端 */
+  color: var(--c-side-text);
+}
+
+.sidebar li::marker {
+  color: var(--c-side-label);
+}
+
+/* 技能组：三级标题 + 技能标签列表，自身是一块纵向栅格 */
+.skill-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  row-gap: var(--gap-y-xs);
+}
+
+/* 技能标签列表：Grid 自适应多列排列（取代浮动布局，不会高度塌陷）
+   --------------------------------------------------------------
+   移动端基准：固定 2 列（触控 / 阅读友好，见 3.1 响应式要求）。
+   之所以不用 ul 原生的 disc 项目符号：多列栅格中，第二列及以后的项目符号
+   会落在栅格的 column-gap 区域里，与前一列的文字重叠。
+   改用 ::before 伪元素绘制圆点并让 li 留出悬挂缩进，多列下也不会互相压字。
+
+   选择器写成 .sidebar .skill-group ul 而非 .skill-group ul：后者权重 (0,1,1)
+   与上面的 .sidebar ul 完全相同，只靠书写顺序在后才生效。一旦规则顺序变动，
+   disc 项目符号与 16px 缩进就会回来，和 ::before 圆点叠成「双层圆点」并把文字右推。
+   提升为 (0,2,1) 后以类数优势明确胜出，意图自解释，不再依赖源码顺序
+   （与下方 .sidebar .award-list 同一手法）。 */
+.sidebar .skill-group ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  column-gap: var(--gap-x-sm);
+  row-gap: var(--gap-y-sm);
+  padding-left: 0;
+  list-style: none;
+}
+
+.skill-group li {
+  position: relative;
+  padding-left: 1em; /* 为悬挂圆点留位，换行文字不与圆点重叠 */
+}
+
+.skill-group li::before {
+  content: '•';
+  position: absolute;
+  left: 0.15em;
+  color: var(--c-side-label);
+}
+
+/* 获奖列表：去掉项目符号，改用上下两行结构。
+   必须写成 .sidebar .award-list：只写 .award-list 权重是 (0,1,0)，
+   会被上面的 .sidebar ul (0,1,1) 压过，项目符号和缩进都会跑回来。 */
+.sidebar .award-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  row-gap: var(--gap-y-xs);
+  padding-left: 0;
+  list-style: none;
+}
+
+/* 获奖条目：奖项名强调，单位与时间弱化 */
+.award-name {
+  display: block;
+  color: var(--c-side-strong);
+  font-weight: 600;
+}
+
+.award-meta {
+  display: block;
+  font-size: 0.857rem; /* 12px @ 移动端 */
+  color: var(--c-side-label);
+}
+
+/* ==============================================================
+   3. 主内容区栅格
+   --------------------------------------------------------------
+   纵向单列子栅格：各内容区块（工作经历、教育背景、项目经验…）顺序排布，
+   区块间距 = row-gap；每个区块内部再各自成为一块栅格。
+   ============================================================== */
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  row-gap: var(--gap-y); /* 区块间距统一由 gap 控制 */
+
+  padding: 24px 20px 32px;
+  background: #ffffff;
+  min-width: 0; /* 防止长链接撑破栅格轨道 */
+}
+
+/* 主栏模块标题：深蓝加粗 + 左侧色块 + 浅灰底线 */
+.main h2 {
+  margin: 0; /* 与下方内容的距离交给父栅格的 row-gap */
+  padding: 0 0 8px 10px;
+  border-left: 3px solid var(--c-primary);
+  border-bottom: 1px solid var(--c-line);
+  font-size: 1.143rem; /* 16px @ 移动端 */
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--c-primary);
+  letter-spacing: 1px;
+}
+
+/* 单条经历（公司 / 项目 / 学校）：内部纵向栅格，
+   首行、职位行、补充行、详情列表之间的间距全部由 row-gap 给出 */
+.entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  row-gap: var(--gap-y-xs);
+}
+
+/* 条目首行：标题在左，时间在右。
+   移动端基准为单列（时间自动落到标题下一行）；
+   平板及以上由媒体查询改为 minmax(0,1fr) auto 两列同行排布。
+   minmax(0, 1fr) 取代了原来的 min-width: 0 收缩兜底，
+   栅格轨道可直接被压缩，不会把日期挤出容器。 */
+.entry-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  row-gap: 0;
+}
+
+.entry-title {
+  margin: 0;
+  font-size: 1.036rem; /* 14.5px @ 移动端 */
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.entry-date {
+  font-size: 0.929rem; /* 13px @ 移动端 */
+  color: var(--c-text-muted);
+}
+
+/* 条目副行：职位 / 角色 / 专业 */
+.entry-role {
+  font-size: 0.929rem; /* 13px @ 移动端 */
+  color: var(--c-text-sub);
+}
+
+/* 条目补充信息行：GPA、核心课程等 */
+.entry-extra {
+  font-size: 0.929rem; /* 13px @ 移动端 */
+  color: var(--c-text-muted);
+}
+
+/* 项目符号列表：单列栅格，条目间距由 row-gap 控制 */
+.entry ul {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  row-gap: var(--gap-y-xs);
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.entry li {
+  margin: 0;
+  overflow-wrap: break-word; /* 旧浏览器回退方案 */
+  overflow-wrap: anywhere; /* 仅在真正溢出时断行，不硬断英文单词 */
+}
+
+.entry li::marker {
+  color: var(--c-primary);
+}
+
+/* 关键数据加粗强调 */
+strong {
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+/* 侧栏为深色底，强调文字须反白，否则与主色同色而不可见 */
+.sidebar strong {
+  color: var(--c-side-strong);
+}
+
+/* 自我评价段落：由 .section 栅格的 row-gap 统一分段，不再逐段设 margin */
+.summary p {
+  text-align: justify;
+}
+
+/* ==============================================================
+   4. 作品集 / 附件链接（栅格两列对齐）
+   --------------------------------------------------------------
+   经典技巧：外层 ul 定义栅格轨道，li 设 display: contents 后不再生成盒子，
+   其内部的「标签 span」与「链接 a」直接成为外层栅格的栅格项，
+   从而天然形成「标签列 + 链接列」两列对齐，
+   取代原来的定宽 flex-basis，也不必手动给每个标签设宽度。 */
+.link-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* 移动端：标签在上、链接在下 */
+  align-items: start;
+  /* 横纵 gap 必须取自同一档令牌，才能严格保持 1 : 1.5
+     （混用不同档会得到 2 : 1 之类的比例，破坏全站统一的间距节奏） */
+  column-gap: var(--gap-x-sm);
+  row-gap: var(--gap-y-sm);
+  list-style: none;
+  padding-left: 0;
+}
+
+.link-list li {
+  display: contents; /* 让 li 的两个子元素直接参与外层栅格 */
+}
+
+.link-list a {
+  color: var(--c-primary);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--c-text-muted);
+  overflow-wrap: break-word; /* 旧浏览器回退方案 */
+  overflow-wrap: anywhere; /* 仅在真正溢出时断行，不硬断英文单词 */
+  padding-block: 3px; /* 移动端触控友好：扩大可点击热区（不影响行高） */
+}
+
+.link-list a:hover {
+  border-bottom-style: solid;
+}
+
+/* 链接前的类型标签：整列由栅格统一定宽，保证四个链接左边缘对齐同一竖线 */
+.link-label {
+  color: var(--c-text-sub);
+  font-weight: 400;
+}
+
+/* ==============================================================
+   5. 响应式断点（移动优先：以下基础样式即移动端样式，向上逐级增强）
+   ============================================================== */
+
+/* --------------------------------------------------------------
+   5.1 移动端基准（< 768px）
+   · 单列布局：sidebar 与 main 由 grid-template-areas 垂直堆叠，各占 100% 宽度
+   · 基础字号 14px（html 默认值，见第 0 节）
+   · 技能标签固定 2 列（见 2 节 .skill-group ul）
+   · 联系方式 / 基本信息：标签与取值垂直排列（.info-list 单列，dt 在上 dd 在下）
+   · 条目首行竖排、链接标签独占一行（.entry-head / .link-list 均为单列轨道）
+   · 页面左右安全边距 16px，保证小屏内容不被贴边
+   -------------------------------------------------------------- */
+
+/* --------------------------------------------------------------
+   5.2 平板端（768px ~ 1023px）
+   · 由 grid-template-columns + grid-template-areas 一次性切成双栏，
+     只改轨道定义、不动 DOM 顺序，重排无跳动
+   · 列宽比 1 : 1.5（侧栏 ≈ 40% / 主栏 ≈ 60%）
+   · 页面左右安全边距压缩至 16px
+   · 基础字号 15px
+   -------------------------------------------------------------- */
+@media screen and (min-width: 768px) {
+  html {
+    font-size: 93.75%; /* 基础字号 15px */
+  }
+
+  .resume {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    grid-template-areas: 'sidebar main';
+    width: calc(100% - (var(--grid-page-x-sm) * 2));
+    margin: 24px auto;
+  }
+
+  .sidebar {
+    padding: 32px 22px;
+  }
+  .main {
+    padding: 32px 30px;
+  }
+
+  /* 条目首行改为「标题在左、时间在右」同一行：单列轨道 → 内容列 + 自适应列。
+     align-items 统一为 start（全站栅格一致）：标题与日期同为 1.7 行高，
+     半行距差不足 0.4px，顶端对齐与基线对齐在视觉上无差别。 */
+  .entry-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: var(--gap-x-md);
+  }
+
+  .entry-date {
+    white-space: nowrap; /* 双栏同行后日期不折行 */
+  }
+
+  /* 作品集：标签列 + 链接列，两列栅格对齐。
+     只改轨道定义即可，gap 沿用基准（同档 sm，仍是 1 : 1.5） */
+  .link-list {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+  }
+
+  /* 侧栏在此断点被压窄（≈ 250px），技能标签从固定 2 列改为
+     auto-fit 自适应：容器不够宽时自动回落为 1 列，避免文字被挤成一字一行。
+     minmax() 内层的 min(100%, 9rem) 保证容器比 9rem 还窄时也不会横向溢出。 */
+  .sidebar .skill-group ul {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  }
+}
+
+/* --------------------------------------------------------------
+   5.3 桌面端（≥ 1024px）
+   · 标准双栏，列宽比 1 : 2（侧栏 ≈ 33% / 主栏 ≈ 67%），阅读比例最佳
+   · 页面左右安全边距 20px，最大内容宽度 1200px
+   · 基础字号 16px
+   -------------------------------------------------------------- */
+@media screen and (min-width: 1024px) {
+  html {
+    font-size: 100%; /* 基础字号 16px */
+  }
+
+  .resume {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    width: calc(100% - (var(--grid-page-x) * 2));
+    margin: 32px auto;
+  }
+
+  .sidebar {
+    padding: 34px 26px;
+  }
+  .main {
+    padding: 34px 34px;
+  }
+}
+
+/* --------------------------------------------------------------
+   5.4 大屏端（≥ 1440px）
+   · 锁定最大内容宽度 1200px（--grid-max），不再随视口变宽，
+     两侧留白随视口递增（margin: auto 自动居中）
+   · 单行文本长度：卡片锁定 1200px 后，主栏内文宽约 720px，
+     按 16px 字号计约 45 个全角字符 / 约 75 个半角字符一行，
+     恰好落在「每行不超过 75 字符」的舒适阅读区间内，
+     因此无需再对正文加 max-width（避免中途收窄造成的视觉跳动）
+   · 间距按比例放宽，充分利用大屏留白
+   -------------------------------------------------------------- */
+@media screen and (min-width: 1440px) {
+  .resume {
+    max-width: var(--grid-max); /* 显式重申上限，锁定内容宽度 */
+  }
+
+  .sidebar {
+    padding: 38px 28px;
+  }
+  .main {
+    padding: 38px 40px;
+  }
+}
+
+/* ==============================================================
+   6. 打印适配（A4）
+   --------------------------------------------------------------
+   · @page 声明 A4 纵向 + 10mm 页边距，浏览器导出 PDF 时自动套用纸张尺寸
+   · 移除页面底色与屏幕装饰（卡片背景 / 阴影 / 圆角 / 侧栏深色块），
+     省墨且避免大面积色块打印出条纹
+   · 打印稿不依赖任何背景色：凡是需要保留的线条一律用 border 绘制，
+     这样即使用户在打印对话框中未勾选「背景图形」，版式与标识依然完整，
+     因此无需像基准版本那样用通配 !important 强制保留背景
+     （全表 !important 数量保持为 0）
+   · 锁定 Grid 双栏：.resume 重新声明两列轨道，
+     保证一页内完整展示、双栏不错位
+   · 打印媒体查询中 screen 断点全部失效，故此处需补齐
+     平板 / 桌面端才有的排布（条目首行左右分列、链接两列对齐）
+   -------------------------------------------------------------- */
+@media print {
+  /* A4 纵向，页边距 10mm */
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  /* 打印字号阶梯：基准 12px，配合 rem 让整页文字等比缩小（原 14px 的 86%） */
+  html {
+    font-size: 75%;
+  }
+
+  /* 打印间距令牌：整体收紧，保证单页容纳更多内容；
+     仍维持横向 : 纵向 = 1 : 1.5 的比例关系 */
+  :root {
+    --gap-x: 10px;
+    --gap-y: 15px;
+    --gap-x-md: 8px;
+    --gap-y-md: 12px;
+    --gap-x-sm: 4px;
+    --gap-y-sm: 6px;
+    --gap-x-xs: 2px;
+    --gap-y-xs: 3px;
+
+    /* 侧栏配色令牌整体映射为深色墨迹：
+       一行改写即可让侧栏全部反白文字在去底色后依然清晰可读 */
+    --c-side-strong: var(--c-primary);
+    --c-side-text: var(--c-text);
+    --c-side-label: var(--c-text-muted);
+    --c-side-line: var(--c-line);
+  }
+
+  body {
+    background: #ffffff;
+    font-size: 1rem; /* 12px */
+    line-height: 1.55;
+  }
+
+  /* 锁定 Grid 双栏：与屏幕样式同源的 1fr : 2fr 比例 */
+  .resume {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-areas: 'sidebar main';
+    align-items: start;
+    gap: 0;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    background: #ffffff;
+    border-radius: 0; /* 去圆角 */
+    box-shadow: none; /* 去阴影 */
+    overflow: visible; /* 允许内容跨页时不被裁切 */
+  }
+
+  /* 侧栏去掉深色色块，改用一条细线维持双栏结构可辨 */
+  .sidebar {
+    padding: 0 12px 0 0;
+    background: transparent;
+    border-right: 1px solid var(--c-line);
+    align-self: stretch; /* 竖线撑满整栏高度，双栏分界清晰 */
+  }
+
+  .main {
+    padding: 0 0 0 14px;
+  }
+
+  /* 侧栏模块标题左侧的强调条，改由 border 绘制。
+     它原先是 32×2px 的 background 色块，也是本套打印样式中唯一仍依赖背景色的
+     装饰：用户若在打印对话框里未勾选「背景图形」（该项默认即不勾选），
+     它会整条丢失，模块标题随之失去视觉标识。
+     border 属于必打印内容，不受该开关影响，故用 border-top 画同一根线；
+     height 归零、线宽全部由 border 承担，渲染出的盒子仍是 32×2px，
+     位置（left: 0 / bottom: -1px）与屏幕样式完全一致。 */
+  .sidebar h2::before {
+    height: 0;
+    background: none;
+    border-top: 2px solid var(--c-side-label);
+  }
+
+  /* 证件照占位框：去掉半透明白底与白色虚线，改为浅灰描边 */
+  .photo {
+    border-color: var(--c-line);
+    background: transparent;
+  }
+
+  /* 打印下侧栏变窄（约 1/3 页宽），技能标签回落为单列更易读 */
+  .sidebar .skill-group ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 打印媒体查询中 screen 断点不生效，此处补齐桌面端的条目首行排布 */
+  .entry-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: var(--gap-x-md);
+  }
+
+  .entry-date {
+    white-space: nowrap;
+  }
+
+  /* 同理补齐作品集的两列对齐排布（gap 令牌已在打印块顶部收紧，此处无需重写） */
+  .link-list {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+  }
+
+  /* 关键：条目整体不跨页断裂，标题不落在页尾 */
+  .entry,
+  .skill-group {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* 打印时链接保持纯文本外观，不显示下划线装饰 */
+  .link-list a {
+    border-bottom: none;
+    text-decoration: none;
+    padding-block: 0;
+  }
+}
+
+/* ==============================================================
+   7. 待办清单模块（web08 事件委托版）—— 原生 JS 交互区
+   --------------------------------------------------------------
+   本节为纯追加内容，web05 的 1 ~ 6 节（含打印适配）未改动一行。
+
+   相对 web07 的变化：
+     · JS 侧把编辑 / 删除 / 切换统一委托给 #todo-list，CSS 无需为“绑定”
+       增加任何选择器；新增的编辑按钮使用 .todo-edit；
+     · 删除按钮里的 × 外包一层 .todo-remove-icon（span），
+       用于验证“点在图标上也能通过 closest 找到按钮”，
+       该 span 只继承按钮的字体与颜色，不改变原有视觉；
+     · 配色、间距、字体仍严格复用第 0 节令牌，不引入任何新色值，
+       新增控件的视觉语言与既有表单控件（.todo-input / .todo-add）同源。
+
+   设计约束 —— 与既有简历风格严格统一：
+     · 不引入任何新配色：只复用第 0 节的配色令牌（--c-primary /
+       --c-text / --c-text-sub / --c-text-muted / --c-line）
+     · 不引入任何新间距值：只复用现有 gap 令牌的三档
+       （L: --gap-y / M: --gap-y-md / S: --gap-y-sm / XS: --gap-y-xs）
+     · 不引入任何外部字体：统一 font: inherit 继承 --font-sans
+     · 全部布局仍走 Grid，且沿用全站「移动端单列 → ≥768px 双列」
+       的重排惯例，与 .entry-head / .link-list 同一手法
+
+   目录：
+     7.1 可访问性工具类（视觉隐藏）
+     7.2 录入行 .todo-form（Grid 自适应）
+     7.3 输入框 / 按钮 .todo-input / .todo-add
+     7.4 提示条 .todo-tip
+     7.5 筛选栏与统计 .todo-toolbar / .todo-filters / .todo-filter
+     7.6 列表与条目 .todo-list / .todo-item / .todo-check / .todo-remove
+     7.7 空状态 .todo-empty
+     7.8 响应式（≥768px）
+     7.9 打印适配（A4）
+   ============================================================== */
+
+/* --------------------------------------------------------------
+   7.1 可访问性工具类 —— 视觉隐藏
+   --------------------------------------------------------------
+   标准 sr-only 写法：不占据任何视觉空间，但仍留在无障碍树中，
+   读屏软件可以正常读出 <label> 的文本。
+   关键在「不用 display: none / visibility: hidden」——那两者会把
+   元素一并从无障碍树中移除，标签就等于没写。
+   此处用 1px 尺寸 + clip 裁切，是 WAI-ARIA 官方推荐的实现。 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------
+   7.2 录入行 .todo-form
+   --------------------------------------------------------------
+   移动端基准：单列轨道，输入框在上、按钮在下（左侧触控区更友好，
+   与 .entry-head / .link-list 的移动端堆叠策略一致）；
+   ≥768px 由 7.8 节把轨道改为 minmax(0, 1fr) auto —— 输入框自适应、
+   按钮按内容定宽，只改轨道定义、不动 DOM 顺序。
+   minmax(0, 1fr) 而非 1fr：栅格轨道可被压缩到 0，
+   长文本 / 长 placeholder 不会把轨道撑破。 */
+.todo-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  row-gap: var(--gap-y-sm);
+}
+
+/* --------------------------------------------------------------
+   7.3 输入框 / 按钮
+   --------------------------------------------------------------
+   关键：font: inherit。
+   表单控件（input / button）默认不继承父级字体，
+   Chrome 会给 input 套上 13.33px 的 Arial、button 也各有默认字号，
+   与全页的 --font-sans + rem 字号阶梯脱节（实测会出现字号与字重
+   与正文明显不一致）。显式继承后，控件随断点字号阶梯同步缩放，
+   与简历正文完全同源。 */
+.todo-input {
+  min-width: 0; /* 栅格项收缩兜底 */
+  padding: 8px 10px;
+  border: 1px solid var(--c-line);
+  border-radius: 4px; /* 与 .photo 的 4px 圆角同档 */
+  background: #ffffff;
+  color: var(--c-text);
+  font: inherit;
+  line-height: 1.5;
+}
+
+/* placeholder 沿用弱化文字色（白底对比度 4.83:1，达 WCAG AA） */
+.todo-input::placeholder {
+  color: var(--c-text-muted);
+}
+
+/* 键盘焦点可见：input 与 button 共用同一套焦点指示，
+   保证纯键盘用户在任何位置都能看清当前焦点（WCAG 2.4.7 焦点可见）。
+   此处用 outline 而非 border 变色：outline 不参与盒模型，
+   出现与消失都不会引起 1px 的布局跳动。 */
+.todo-input:focus,
+.todo-add:focus {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 1px;
+}
+
+/* 添加按钮：实心主色块 + 反白文字，与侧栏深色块、h2 左侧色条同源 */
+.todo-add {
+  padding: 8px 18px;
+  border: 1px solid var(--c-primary);
+  border-radius: 4px;
+  background: var(--c-primary);
+  color: var(--c-side-strong);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+/* hover / active 反馈不引入新色值：仅调整不透明度，
+   配色令牌保持全站封闭，不会出现「第五种蓝」 */
+.todo-add:hover {
+  opacity: 0.88;
+}
+
+.todo-add:active {
+  opacity: 0.76;
+}
+
+/* --------------------------------------------------------------
+   7.4 提示条 .todo-tip
+   --------------------------------------------------------------
+   校验失败（空值 / 超长 / 重复）时的统一反馈出口。
+   空内容时由 :empty 直接 display: none —— 因是 Grid 子项，
+   被 display: none 后不生成栅格轨道，父栅格的 row-gap 也随之不生效，
+   所以空闲状态下本模块的间距节奏与既有区块完全一致，不留死白。
+   代价是提示出现/消失时下方内容会有约 20px 的位移；
+   提示条本身 2.4s 后自动消失，属可接受的权衡。 */
+.todo-tip {
+  font-size: 0.929rem; /* 13px @ 移动端，与 .entry-role 同档 */
+  color: var(--c-text-sub);
+  /* 左侧短竖条：与主栏 h2 的 border-left 同构，提示「这是系统反馈」 */
+  padding-left: 8px;
+  border-left: 2px solid var(--c-primary);
+}
+
+.todo-tip:empty {
+  display: none;
+}
+
+/* --------------------------------------------------------------
+   7.5 筛选栏与统计
+   --------------------------------------------------------------
+   一行两组信息：左侧是「看哪一部分」的筛选按钮组，右侧是总览统计。
+   · 容器用 Flex + wrap：窄屏放不下时自然换行，不产生横向滚动；
+   · 按钮做成胶囊形（border-radius: 999px），尺寸比主按钮小一号，
+     视觉层级低于「添加」，不会和录入行抢注意力；
+   · 选中态由 [aria-pressed="true"] 驱动，与 JS 的 updateFilters()
+     使用同一份状态，视觉与无障碍语义不会不同步。 */
+.todo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: var(--gap-x-md);
+  row-gap: var(--gap-y-sm);
+}
+
+.todo-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-x-xs);
+}
+
+.todo-filter {
+  padding: 4px 10px;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--c-text-sub);
+  font: inherit;
+  font-size: 0.929rem; /* 13px @ 移动端，与 .todo-tip 同档 */
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+/* hover 与选中态都只从既有令牌取色：主色描边 / 主色实底 */
+.todo-filter:hover {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+}
+
+.todo-filter[aria-pressed='true'] {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: var(--c-side-strong);
+}
+
+/* 新增控件与录入行共用同一套焦点指示（WCAG 2.4.7 焦点可见） */
+.todo-filter:focus,
+.todo-edit:focus,
+.todo-remove:focus,
+.todo-toggle:focus {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+/* 条数用等宽数字：0 → 10 时按钮宽度不跳动 */
+.todo-count,
+.todo-summary {
+  font-variant-numeric: tabular-nums;
+}
+
+.todo-count {
+  margin-left: 2px;
+  opacity: 0.72; /* 弱化计数，让文字标签保持主视觉 */
+}
+
+.todo-summary {
+  font-size: 0.929rem;
+  color: var(--c-text-muted);
+}
+
+/* --------------------------------------------------------------
+   7.6 列表与条目
+   --------------------------------------------------------------
+   列表为单列子栅格，条目间距取 XS 档（最紧密的行间档位），
+   与 .entry ul / .award-list 的取值一致。
+
+   单条待办是「内容列 + 两个操作列」三列子栅格：
+     · 第一列 .todo-check（label）：勾选框 + 文本。把文本包进 label，
+       点击文字也能切换完成状态，触控目标远大于 14px 的勾选框本身；
+     · 第二列 .todo-edit：编辑按钮，按内容定宽；
+     · 第三列 .todo-remove：删除按钮，按内容定宽。
+   各列都允许收缩（minmax(0, 1fr) / auto），长文本只会换行，不会撑破主栏。 */
+.todo-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  row-gap: var(--gap-y-xs);
+  padding-left: 0;
+  list-style: none; /* 勾选框取代了项目符号，去掉原生 disc */
+}
+
+.todo-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: start;
+  column-gap: var(--gap-x-sm);
+  /* 渲染层溢出兜底：超长无空格串（URL / 哈希 / 连续英文）
+     在栅格轨道内强制断行，不会把主栏撑宽导致双栏错位。
+     JS 侧已有 60 字长度校验，这里是与它配套的第二层防护。 */
+  overflow-wrap: break-word; /* 旧浏览器回退方案 */
+  overflow-wrap: anywhere; /* 仅在真正溢出时断行，不硬断英文单词 */
+}
+
+.todo-check {
+  display: flex;
+  align-items: flex-start; /* 多行文本时勾选框停在首行，不垂直居中 */
+  gap: var(--gap-x-sm);
+  min-width: 0; /* 允许文本列收缩换行 */
+  cursor: pointer;
+}
+
+.todo-toggle {
+  flex: none; /* 勾选框不参与压缩，宽度恒为 1em */
+  width: 1em;
+  height: 1em;
+  /* 文本行高 1.5em、勾选框高 1em，上沿下移 0.25em 即可与首行文字视觉居中对齐 */
+  margin: 0.25em 0 0;
+  accent-color: var(--c-primary); /* 原生勾选框直接取主色，无需自绘控件 */
+  cursor: pointer;
+}
+
+.todo-text {
+  min-width: 0;
+}
+
+/* 已完成：弱化文字色 + 删除线。
+   两个信号同时使用，不单靠颜色传达状态（WCAG 1.4.1 不只用颜色）。 */
+.todo-item.is-completed .todo-text {
+  color: var(--c-text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.todo-edit {
+  padding: 0 0.25em;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--c-text-muted);
+  font: inherit;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.todo-edit:hover {
+  background: var(--c-line);
+  color: var(--c-primary);
+}
+
+.todo-remove {
+  padding: 0 0.25em;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--c-text-muted);
+  font: inherit;
+  font-size: 1.15em; /* × 略放大，保证点击目标与视觉重量 */
+  line-height: 1;
+  cursor: pointer;
+}
+
+.todo-remove:hover {
+  background: var(--c-line);
+  color: var(--c-primary);
+}
+
+/* --------------------------------------------------------------
+   7.7 空状态
+   --------------------------------------------------------------
+   列表一旦有子节点就自动隐藏。
+   —— 这是本模块「数据与视图一致性」的实现方式：
+      通过 :not(:empty) 兄弟选择器把「是否显示空状态」的判定
+      下推到 CSS 渲染层，JS 端完全不持有「列表是否为空」这个变量，
+      因此不存在两份状态不同步的可能。
+      注意：这要求 #todo-list 的标签之间不含任何空白字符，
+      否则 :empty 恒为假（详见 index.html 中该节点的注释）。
+   空状态文案本身随筛选变化，由 JS 的 updateEmptyState() 更新。 */
+.todo-empty {
+  font-size: 0.929rem; /* 13px @ 移动端 */
+  color: var(--c-text-muted);
+}
+
+.todo-list:not(:empty) ~ .todo-empty {
+  display: none;
+}
+
+/* --------------------------------------------------------------
+   7.8 响应式：≥768px 起录入行改为两列同行
+   --------------------------------------------------------------
+   与第 5.2 节同址断点、同一手法：只重写 grid-template-columns，
+   DOM 顺序与移动端完全一致，重排无跳动。
+   轨道取 minmax(0, 1fr) auto —— 输入框吃掉剩余宽度、按钮按内容定宽，
+   与 .entry-head 的「内容列 + 自适应列」取值同构。
+   align-items 保持 start（全站栅格一致）：本行两者高度差不足 1px，
+   start 与 center 视觉上无差别，不为单点需求破坏全局约定。 */
+@media screen and (min-width: 768px) {
+  .todo-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--gap-x-md);
+  }
+}
+
+/* --------------------------------------------------------------
+   7.9 打印适配（A4）
+   --------------------------------------------------------------
+   待办清单是「屏幕端的交互模块」，不属于简历的静态信息：
+   输入框、按钮、提示条这些控件印在纸质简历上既无意义也不美观。
+
+   因此打印时整块隐藏，好处有三：
+     1) 正式简历 / 导出 PDF 只呈现静态信息，不留交互控件残影；
+     2) 列表若为空，不会在纸面上留下一个只有标题的空区块；
+     3) web05 第 6 节已经调好的 A4 单页版式维持原样，
+        待办模块的增删完全不影响既有分页与双栏结构。
+
+   单独起一个 @media print 块（而非插入第 6 节内部），
+   是为了让 web05 原有打印样式表保持零改动，便于逐行对比。
+   若将来希望把待办打印出来，只需删掉本节即可。 */
+@media print {
+  .todo {
+    display: none;
+  }
+}

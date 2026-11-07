@@ -1,0 +1,15 @@
+=== 屏蔽手段扫描（应为空）===
+(none)
+
+=== tsconfig strict ===
+9:    "strict": true,
+12:    "noUncheckedIndexedAccess": true,
+13:    "exactOptionalPropertyTypes": true,
+
+=== 阈值未被调低 ===
+9: *   · complexity: 10                  —— 单函数圈复杂度上限
+10: *   · max-depth: 3                    —— 嵌套块深度上限
+11: *   · @typescript-eslint/no-explicit-any: error —— 禁止显式 any
+34:    complexity: ['error', 10],
+35:    'max-depth': ['error', 3],
+36:    '@typescript-eslint/no-explicit-any': 'error',

@@ -1,0 +1,16 @@
+# 依赖与构建缓存
+node_modules/
+dist/
+coverage/
+.vite/
+
+# 课程作业文档 / 临时文件
+*.docx
+~$*
+_*
+
+# 系统 / 编辑器文件
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

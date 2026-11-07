@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>W10 npx eslint src/ 终端输出</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        background: #0c0c0c;
+        font-family: Consolas, 'Cascadia Mono', 'Microsoft YaHei', monospace;
+        padding: 18px;
+      }
+      .window {
+        width: 100%;
+        height: 100%;
+        background: #0c0c0c;
+        border: 1px solid #333;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.65);
+      }
+      .titlebar {
+        height: 40px;
+        background: #1f1f1f;
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        border-bottom: 1px solid #2b2b2b;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      .red {
+        background: #ff5f57;
+      }
+      .yellow {
+        background: #febc2e;
+      }
+      .green {
+        background: #28c840;
+      }
+      .title {
+        color: #cfcfcf;
+        font-size: 13px;
+        margin-left: 10px;
+      }
+      .tabs {
+        height: 34px;
+        background: #171717;
+        color: #d0d0d0;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        padding: 0 18px;
+        border-bottom: 1px solid #262626;
+      }
+      .tab {
+        color: #e8e8e8;
+        background: #0c0c0c;
+        padding: 7px 16px;
+        border-radius: 6px 6px 0 0;
+      }
+      .screen {
+        padding: 22px 26px;
+        color: #cccccc;
+        font-size: 17px;
+        line-height: 1.72;
+      }
+      .prompt {
+        color: #6fdc8c;
+      }
+      .path {
+        color: #4fc1ff;
+      }
+      .cmd {
+        color: #f2f2f2;
+      }
+      .dim {
+        color: #8a8a8a;
+      }
+      .file {
+        color: #e8e8e8;
+        font-weight: 600;
+      }
+      .warn {
+        color: #f2c744;
+        font-weight: 600;
+      }
+      .msg {
+        color: #d4d4d4;
+      }
+      .rule {
+        color: #4fc1ff;
+      }
+      .summary {
+        color: #e8e8e8;
+        font-weight: 700;
+      }
+      .zero {
+        color: #2ee66b;
+        font-weight: 700;
+      }
+      .three {
+        color: #f2c744;
+        font-weight: 700;
+      }
+      .cursor {
+        display: inline-block;
+        width: 9px;
+        height: 19px;
+        background: #cccccc;
+        vertical-align: -4px;
+        margin-left: 2px;
+      }
+      .blank {
+        height: 9px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="window">
+      <div class="titlebar">
+        <span class="dot red"></span><span class="dot yellow"></span
+        ><span class="dot green"></span>
+        <span class="title">Windows PowerShell — E:\大三\Web\web10</span>
+      </div>
+      <div class="tabs"><span class="tab">Windows PowerShell</span></div>
+      <div class="screen">
+        <div>
+          <span class="prompt">PS</span>
+          <span class="path">E:\大三\Web\web10&gt;</span>
+          <span class="cmd">npx eslint src/</span>
+        </div>
+        <div class="blank"></div>
+        <div><span class="file">E:\大三\Web\web10\src\todo-app.ts</span></div>
+        <div>
+          <span class="dim">&nbsp;&nbsp;114:3</span>
+          <span class="warn">&nbsp;warning</span>
+          <span class="msg">&nbsp;&nbsp;Unexpected console statement</span>
+          <span class="rule">&nbsp;&nbsp;no-console</span>
+        </div>
+        <div>
+          <span class="dim">&nbsp;&nbsp;516:5</span>
+          <span class="warn">&nbsp;warning</span>
+          <span class="msg">&nbsp;&nbsp;Unexpected console statement</span>
+          <span class="rule">&nbsp;&nbsp;no-console</span>
+        </div>
+        <div>
+          <span class="dim">&nbsp;&nbsp;519:5</span>
+          <span class="warn">&nbsp;warning</span>
+          <span class="msg">&nbsp;&nbsp;Unexpected console statement</span>
+          <span class="rule">&nbsp;&nbsp;no-console</span>
+        </div>
+        <div class="blank"></div>
+        <div>
+          <span class="summary">✖ 3 problems</span>
+          <span class="summary">(</span><span class="zero">0 errors</span
+          ><span class="summary">, </span><span class="three">3 warnings</span
+          ><span class="summary">)</span>
+        </div>
+        <div class="blank"></div>
+        <div>
+          <span class="prompt">PS</span>
+          <span class="path">E:\大三\Web\web10&gt;</span>
+          <span class="cursor"></span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

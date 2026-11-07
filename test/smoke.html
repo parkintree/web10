@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>W10-SMOKE</title>
+    <style>
+      body {
+        font:
+          14px/1.6 Consolas,
+          'Microsoft YaHei',
+          monospace;
+        padding: 16px;
+      }
+      #results {
+        white-space: pre-wrap;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 12px;
+      }
+      iframe {
+        width: 1000px;
+        height: 700px;
+        border: 1px solid #ccc;
+      }
+      .pass {
+        color: #2ee66b;
+      }
+      .fail {
+        color: #ff6b6b;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>W10 冒烟测试 · 对 Vite 生产构建产物的真实运行</h1>
+    <pre id="results">running...</pre>
+    <script>
+      'use strict';
+
+      const KEY = 'web09.todos.v2';
+      const results = document.getElementById('results');
+      const lines = [];
+      let pass = 0;
+      let fail = 0;
+
+      function check(name, condition, detail) {
+        if (condition) {
+          pass += 1;
+          lines.push('PASS  ' + name + (detail ? '  [' + detail + ']' : ''));
+        } else {
+          fail += 1;
+          lines.push('FAIL  ' + name + (detail ? '  [' + detail + ']' : ''));
+        }
+      }
+
+      function delay(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function createFrame() {
+        return new Promise((resolve) => {
+          const frame = document.createElement('iframe');
+          frame.id = 'app';
+          frame.src = '/';
+          frame.addEventListener(
+            'load',
+            () => setTimeout(() => resolve(frame), 120),
+            { once: true },
+          );
+          document.body.appendChild(frame);
+        });
+      }
+
+      function reloadFrame(frame) {
+        return new Promise((resolve) => {
+          frame.addEventListener(
+            'load',
+            () => setTimeout(() => resolve(), 120),
+            { once: true },
+          );
+          frame.contentWindow.location.reload();
+        });
+      }
+
+      function textOf(node) {
+        return (node.textContent || '').trim();
+      }
+
+      async function main() {
+        window.localStorage.removeItem(KEY);
+        const frame = await createFrame();
+        const win = frame.contentWindow;
+        // 每次现取：reload 之后 contentDocument 会换成新文档，缓存会拿到已卸载的旧 DOM。
+        const doc = () => frame.contentDocument;
+
+        const input = () => doc().getElementById('todo-input');
+        const addBtn = () => doc().getElementById('todo-add');
+        const tip = () => textOf(doc().getElementById('todo-tip'));
+        const items = () => Array.from(doc().querySelectorAll('.todo-item'));
+        const summary = () => textOf(doc().getElementById('todo-summary'));
+        const itemTexts = () =>
+          items().map((item) => textOf(item.querySelector('.todo-text')));
+
+        function add(text) {
+          input().value = text;
+          addBtn().click();
+        }
+
+        function toggleOf(item) {
+          return item.querySelector('.todo-toggle');
+        }
+
+        // 1. 纯空白不能添加
+        add(' \t　 ');
+        check(
+          '纯空白不能添加',
+          items().length === 0 && tip().includes('内容不能为空'),
+          tip(),
+        );
+
+        // 2. 超过 60 字被拒绝
+        add('a'.repeat(61));
+        check(
+          '61 字被拒绝',
+          items().length === 0 && tip().includes('内容过长'),
+          tip(),
+        );
+
+        // 3. 正好 60 字通过
+        add('a'.repeat(60));
+        check('60 字通过', items().length === 1, summary());
+
+        // 4. 首尾空白去掉、内部空白折叠
+        add('  买   牛奶  ');
+        check(
+          '空白规范化',
+          items().length === 2 && itemTexts()[0] === '买 牛奶',
+          JSON.stringify(itemTexts()),
+        );
+
+        // 5. 规范化后重复不能添加
+        add('买 牛奶');
+        check(
+          '重复内容被拒绝',
+          items().length === 2 && tip().includes('已存在'),
+          tip(),
+        );
+
+        // 6. 完成状态可双向切换
+        toggleOf(items()[0]).click();
+        const afterOn = items()[0].classList.contains('is-completed');
+        toggleOf(items()[0]).click();
+        const afterOff = items()[0].classList.contains('is-completed');
+        check('切换：未完成 → 已完成', afterOn, summary());
+        check('切换：已完成 → 未完成', !afterOff, summary());
+
+        // 7. 删除是终止性操作：只删目标，不影响其余条目的完成状态
+        toggleOf(items()[0]).click();
+        const survivorText = itemTexts()[1];
+        const deleteBtn = items()[0].querySelector('[data-action="delete"]');
+        deleteBtn.click();
+        await delay(20);
+        check(
+          '删除只移除目标条目',
+          items().length === 1 && itemTexts()[0] === survivorText,
+          JSON.stringify(itemTexts()),
+        );
+        check(
+          '删除不会顺带切换其余条目',
+          !items()[0].classList.contains('is-completed'),
+          summary(),
+        );
+
+        // 8. 非法 dataset.id 被拒绝（0x10 不是合法十进制 id）
+        const survivor = items()[0];
+        const originalId = survivor.dataset.id;
+        survivor.dataset.id = '0x10';
+        toggleOf(survivor).click();
+        await delay(10);
+        check(
+          '非法 dataset.id 拒绝切换',
+          !items()[0].classList.contains('is-completed') &&
+            tip().includes('编号无效'),
+          tip(),
+        );
+        items()[0].dataset.id = originalId;
+
+        // 9. HTML 字符串按纯文本保存，不解释标签
+        win.__xss = undefined;
+        add('<img src=x onerror="window.__xss=1">');
+        check(
+          'HTML 按纯文本保存',
+          itemTexts()[0] === '<img src=x onerror="window.__xss=1">' &&
+            doc().querySelectorAll('#todo-list img').length === 0 &&
+            win.__xss === undefined,
+          JSON.stringify(itemTexts()[0]),
+        );
+
+        // 10. 脏数据恢复：重复 id / 缺失 id 重编号，空文本与 null 丢弃
+        window.localStorage.setItem(
+          KEY,
+          JSON.stringify([
+            { text: '恢复一', completed: false, id: 1 },
+            { text: '恢复二', completed: true, id: 1 },
+            { text: '', completed: false, id: 2 },
+            { text: '恢复三', completed: true },
+            null,
+          ]),
+        );
+        await reloadFrame(frame);
+        const ids = items().map((item) => item.dataset.id);
+        check(
+          '脏数据恢复：3 条有效数据',
+          items().length === 3 &&
+            JSON.stringify(itemTexts()) ===
+              JSON.stringify(['恢复一', '恢复二', '恢复三']),
+          JSON.stringify(itemTexts()),
+        );
+        check(
+          '脏数据恢复：id 唯一且合法',
+          new Set(ids).size === 3 && ids.every((id) => /^[1-9]\d*$/.test(id)),
+          JSON.stringify(ids),
+        );
+        check(
+          '脏数据恢复：完成状态保留',
+          items()[1].classList.contains('is-completed') &&
+            items()[2].classList.contains('is-completed'),
+          summary(),
+        );
+
+        // 11. 控制台验收桥：clearCompleted 返回清除条数
+        const removed = frame.contentWindow.clearCompleted();
+        check(
+          'clearCompleted 清除 2 条',
+          removed === 2 && items().length === 1 && itemTexts()[0] === '恢复一',
+          'removed=' + removed + ' left=' + JSON.stringify(itemTexts()),
+        );
+
+        lines.push('');
+        lines.push(
+          'TOTAL ' +
+            pass +
+            '/' +
+            (pass + fail) +
+            (fail === 0 ? ' ALL PASS' : ' FAILED'),
+        );
+        results.textContent = lines.join('\n');
+        document.title = 'W10-SMOKE ' + pass + '/' + (pass + fail);
+        window.__smokeDone = true;
+      }
+
+      main().catch((error) => {
+        results.textContent =
+          lines.join('\n') +
+          '\nERROR ' +
+          (error && error.stack ? error.stack : String(error));
+        document.title = 'W10-SMOKE ERROR';
+        window.__smokeDone = true;
+      });
+    </script>
+  </body>
+</html>
